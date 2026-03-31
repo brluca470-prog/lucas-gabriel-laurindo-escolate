@@ -1,1 +1,173 @@
+"""
+MINHA MOCHILA DIGITAL
+Um caderno simples para registrar matérias e ocorrências/anotações das aulas.
+Desenvolvido para uso pessoal e fácil de usar.
+"""
 
+import json
+from datetime import datetime
+import os
+
+# Configurações
+ARQUIVO_DADOS = "minha_mochila.json"
+
+def carregar_dados():
+    """Carrega os dados do arquivo JSON ou retorna dicionário vazio."""
+    if os.path.exists(ARQUIVO_DADOS):
+        try:
+            with open(ARQUIVO_DADOS, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            print("⚠️  Erro ao carregar os dados. Iniciando com mochila vazia.")
+            return {}
+    return {}
+
+def salvar_dados(dados):
+    """Salva os dados no arquivo JSON."""
+    try:
+        with open(ARQUIVO_DADOS, "w", encoding="utf-8") as f:
+            json.dump(dados, f, ensure_ascii=False, indent=4)
+    except Exception as e:
+        print(f"❌ Erro ao salvar os dados: {e}")
+
+def limpar_tela():
+    """Limpa a tela do terminal (funciona no Windows e Linux/Mac)."""
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+def adicionar_materia(dados):
+    """Adiciona uma nova matéria."""
+    limpar_tela()
+    print("📚 ADICIONAR NOVA MATÉRIA\n")
+    materia = input("Digite o nome da matéria: ").strip()
+    
+    if not materia:
+        print("❌ O nome da matéria não pode estar vazio!")
+        return
+    
+    if materia in dados:
+        print(f"⚠️  A matéria '{materia}' já existe.")
+    else:
+        dados[materia] = []
+        print(f"✅ Matéria '{materia}' adicionada com sucesso!")
+
+def adicionar_ocorrencia(dados):
+    """Adiciona uma anotação/ocorrência em uma matéria."""
+    if not dados:
+        print("\n❌ Você ainda não tem nenhuma matéria cadastrada.")
+        input("\nPressione Enter para continuar...")
+        return
+    
+    limpar_tela()
+    print("✍️  ADICIONAR OCORRÊNCIA / ANOTAÇÃO\n")
+    
+    # Lista as matérias
+    materias = list(dados.keys())
+    for i, materia in enumerate(materias, 1):
+        print(f"{i}. {materia}")
+    
+    try:
+        escolha = int(input("\nEscolha o número da matéria: ")) - 1
+        materia_escolhida = materias[escolha]
+    except:
+        print("❌ Escolha inválida!")
+        input("\nPressione Enter para continuar...")
+        return
+    
+    print(f"\nEscreva as ocorrências/anotações da aula de {materia_escolhida}:")
+    print("(Digite 'sair' em uma linha vazia para finalizar)\n")
+    
+    linhas = []
+    while True:
+        linha = input()
+        if linha.strip().lower() == "sair":
+            break
+        linhas.append(linha)
+    
+    texto = "\n".join(linhas).strip()
+    
+    if texto:
+        data_hora = datetime.now().strftime("%d/%m/%Y • %H:%M")
+        ocorrencia = {
+            "data": data_hora,
+            "texto": texto
+        }
+        dados[materia_escolhida].append(ocorrencia)
+        print(f"\n✅ Anotação salva com sucesso em '{materia_escolhida}'!")
+    else:
+        print("\n❌ Anotação vazia. Nada foi salvo.")
+
+def ver_anotacoes(dados):
+    """Visualiza as anotações de uma matéria."""
+    if not dados:
+        print("\n❌ Nenhuma matéria cadastrada ainda.")
+        input("\nPressione Enter para continuar...")
+        return
+    
+    limpar_tela()
+    print("📖 VER ANOTAÇÕES\n")
+    
+    materias = list(dados.keys())
+    for i, materia in enumerate(materias, 1):
+        print(f"{i}. {materia}")
+    
+    try:
+        escolha = int(input("\nEscolha o número da matéria: ")) - 1
+        materia = materias[escolha]
+    except:
+        print("❌ Escolha inválida!")
+        input("\nPressione Enter para continuar...")
+        return
+    
+    anotacoes = dados[materia]
+    
+    limpar_tela()
+    print(f"📚 ANOTAÇÕES DE: {materia.upper()}\n")
+    print("=" * 60)
+    
+    if not anotacoes:
+        print("Ainda não há anotações nesta matéria.")
+    else:
+        for i, anot in enumerate(anotacoes, 1):
+            print(f"\n{i:02d}. 📅 {anot['data']}")
+            print("-" * 50)
+            print(anot['texto'])
+            print("-" * 60)
+    
+    input("\nPressione Enter para voltar ao menu...")
+
+def menu():
+    """Menu principal do programa."""
+    dados = carregar_dados()
+    
+    while True:
+        limpar_tela()
+        print("=" * 50)
+        print("       📚 MINHA MOCHILA DIGITAL")
+        print("=" * 50)
+        print("1. ➕ Adicionar nova matéria")
+        print("2. ✍️  Adicionar ocorrência / anotação")
+        print("3. 📖 Ver anotações de uma matéria")
+        print("4. 💾 Sair e salvar")
+        print("=" * 50)
+        
+        opcao = input("\nEscolha uma opção (1-4): ").strip()
+        
+        if opcao == "1":
+            adicionar_materia(dados)
+        elif opcao == "2":
+            adicionar_ocorrencia(dados)
+        elif opcao == "3":
+            ver_anotacoes(dados)
+        elif opcao == "4":
+            salvar_dados(dados)
+            print("\n✅ Dados salvos com sucesso!")
+            print("👋 Até a próxima aula! Boa sorte nos estudos!\n")
+            break
+        else:
+            print("❌ Opção inválida! Tente novamente.")
+        
+        salvar_dados(dados)  # Salva automaticamente após cada ação
+        input("\nPressione Enter para continuar...")
+
+if __name__ == "__main__":
+    menu()
