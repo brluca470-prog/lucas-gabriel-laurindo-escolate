@@ -1,1 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mochila Digital</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      transition: 0.3s;
+      background: #111;
+      color: #000;
+    }
 
+    header {
+      background: rgba(0,0,0,0.85);
+      color: white;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .menu {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      background: #222;
+      padding: 10px;
+    }
+
+    .menu button {
+      padding: 10px;
+      border: none;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+
+    .container {
+      padding: 20px;
+    }
+
+    .aba {
+      display: none;
+    }
+
+    .ativa {
+      display: block;
+    }
+
+    .materia, .nota {
+      background: rgba(255,255,255,0.9);
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 10px;
+    }
+
+    img {
+      max-width: 120px;
+      margin: 5px;
+      border-radius: 10px;
+    }
+
+    #materias {
+      min-height: 300px;
+      padding: 15px;
+      border-radius: 12px;
+      background-size: cover;
+      background-position: center;
+      transition: 0.3s;
+    }
+
+    textarea {
+      width: 100%;
+      height: 80px;
+      margin-top: 10px;
+      border-radius: 8px;
+      padding: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🎒 Mochila Digital</h1>
+</header>
+
+<div class="menu">
+  <button onclick="trocarAba('materias')">📚 Mochila</button>
+  <button onclick="trocarAba('fotos')">🖼️ Fotos</button>
+  <button onclick="trocarAba('config')">⚙️ Fundo</button>
+</div>
+
+<div class="container">
+
+  <!-- ABA MOCHILA -->
+  <div id="materias" class="aba ativa">
+    <h2>📚 Matérias</h2>
+
+    <input type="text" id="materiaInput" placeholder="Nome da matéria">
+    <button onclick="addMateria()">Adicionar</button>
+
+    <div id="listaMaterias"></div>
+
+    <h2>📝 O que aconteceu na aula</h2>
+    <textarea id="notaInput" placeholder="Escreva o que aconteceu..."></textarea>
+    <button onclick="addNota()">Salvar</button>
+
+    <div id="listaNotas"></div>
+  </div>
+
+  <!-- ABA FOTOS -->
+  <div id="fotos" class="aba">
+    <h2>🖼️ Fotos</h2>
+    <input type="file" id="fotoInput" accept="image/*">
+    <button onclick="addFoto()">Adicionar</button>
+
+    <div id="galeria"></div>
+  </div>
+
+  <!-- ABA CONFIG -->
+  <div id="config" class="aba">
+    <h2>⚙️ Plano de Fundo (somente mochila)</h2>
+    <input type="file" accept="image/*" onchange="changeBackground(event)">
+  </div>
+
+</div>
+
+<script>
+  function trocarAba(nome) {
+    document.querySelectorAll('.aba').forEach(el => el.classList.remove('ativa'));
+    document.getElementById(nome).classList.add('ativa');
+  }
+
+  function addMateria() {
+    const input = document.getElementById('materiaInput');
+    if (!input.value) return;
+
+    const div = document.createElement('div');
+    div.className = 'materia';
+    div.innerHTML = `<strong contenteditable="true">${input.value}</strong> <button onclick="this.parentElement.remove()">Excluir</button>`;
+
+    document.getElementById('listaMaterias').appendChild(div);
+    input.value = '';
+  }
+
+  function addNota() {
+    const input = document.getElementById('notaInput');
+    if (!input.value) return;
+
+    const div = document.createElement('div');
+    div.className = 'nota';
+    div.textContent = input.value;
+
+    document.getElementById('listaNotas').appendChild(div);
+    input.value = '';
+  }
+
+  // Fundo só na mochila (aba materias)
+  function changeBackground(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const el = document.getElementById('materias');
+      el.style.backgroundImage = `url(${e.target.result})`;
+      localStorage.setItem('bg', e.target.result);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function addFoto() {
+    const input = document.getElementById('fotoInput');
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      document.getElementById('galeria').appendChild(img);
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+  }
+
+  window.onload = function() {
+    const bg = localStorage.getItem('bg');
+    if (bg) {
+      document.getElementById('materias').style.backgroundImage = `url(${bg})`;
+    }
+  }
+</script>
+
+</body>
+</html>
